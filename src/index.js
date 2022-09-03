@@ -62,11 +62,15 @@ const { webkit } = require('playwright');
                 cornersTeamTwo = await page.locator('div:nth-child(3) > div:nth-child(7) > .oss-SoccerStatsCell_Label').allTextContents();    
             }
 
-            console.log(`${dataTeamInformation.firstTeamName[i]}: ${cornersTeamOne} - corners ⛳️\n${dataTeamInformation.secondTeamName[i]}: ${cornersTeamTwo} - corners ⛳️`);
+            let totalCorners = Number(cornersTeamOne) + Number(cornersTeamTwo);
+
+            console.log(`${dataTeamInformation.firstTeamName[i]}: ${cornersTeamOne} - corners ⛳️`);
+            console.log(`${dataTeamInformation.secondTeamName[i]}: ${cornersTeamTwo} - corners ⛳️`);
+            console.log(`Total corners: ${totalCorners}`);
             console.log("---------------");
 
             await page.locator('.g5-PopupManager_ClickMask').click();
-            
+
         }
     };
 
