@@ -1,8 +1,8 @@
 const { webkit } = require('playwright');
 
-(async() => {
+(async () => {
 
-    const browser = await webkit.launch({headless:true}); //{headless: false}
+    const browser = await webkit.launch({headless:false}); //{headless: false}
     const page = await browser.newPage();
      
     await page.goto('https://www.bet365.com/#/HO/');
@@ -40,42 +40,91 @@ const { webkit } = require('playwright');
     let popup = async () => {
 
         await page.waitForTimeout(5000);
-
+            
         let countCorners = await page.locator('.ovm-StatsIcon').count();
 
-        for (let i = 0; i < countCorners; ++i){
+        // for (let i = 0; i < countCorners; ++i){
+            let p = 1
+            await page.locator('.ovm-StatsIcon').nth(p).click();
             
-            await page.locator('.ovm-StatsIcon').nth(i).click();
-
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(100);
 
             let dataTeamInformation = await teamInformation();
             
             let cornersTeamOne; 
             let cornersTeamTwo;
 
-            if(await page.locator('.oss-SoccerStatsCell_Label').count() != 16){
-                cornersTeamOne = await page.locator('div:nth-child(2) > div:nth-child(6) > .oss-SoccerStatsCell_Label').allTextContents();
-                cornersTeamTwo = await page.locator('div:nth-child(3) > div:nth-child(6) > .oss-SoccerStatsCell_Label').allTextContents();
-            } else {
-                cornersTeamOne = await page.locator('div:nth-child(2) > div:nth-child(7) > .oss-SoccerStatsCell_Label').allTextContents();
-                cornersTeamTwo = await page.locator('div:nth-child(3) > div:nth-child(7) > .oss-SoccerStatsCell_Label').allTextContents();    
+            const observerOptions = {
+                subtree:true,
+                characterData:true,
+                characterDataOldValue:true
             }
 
-            let totalCorners = Number(cornersTeamOne) + Number(cornersTeamTwo);
+                if(await page.locator('.oss-SoccerStatsCell_Label').count() != 16){
+                    await page.evaluate( async ({observerOptions}) => {
+                        const observerTeamHome = new MutationObserver( async (changes) => {
+                            cornersTeamTwo = document.querySelector('div:nth-child(3) > div:nth-child(3) > .oss-SoccerStatsCell_Label').innerHTML
+                            for(let change of changes){
+                                if (change.type === 'characterData') {
+                                    console.log(`home team corner: [${change.target.textContent}]⛳️`)
+                                    console.log(`away team corner: ${cornersTeamTwo}⛳️`)
+                                }
+                            }
+                        })
+                        const observerTeamOut = new MutationObserver( async (changes) => {
+                            cornersTeamOne = document.querySelector('div:nth-child(2) > div:nth-child(3) > .oss-SoccerStatsCell_Label').innerHTML
+                            for(let change of changes){
+                                if (change.type === 'characterData') {
+                                    console.log(`home team corner: ${cornersTeamOne}⛳️`)
+                                    console.log(`away team corner: [${change.target.textContent}]⛳️`)
+                                }
+                            }
+                        })
 
-            console.log(`${dataTeamInformation.firstTeamName[i]}: ${cornersTeamOne} - corners ⛳️`);
-            console.log(`${dataTeamInformation.secondTeamName[i]}: ${cornersTeamTwo} - corners ⛳️`);
-            console.log(`Total corners: ${totalCorners}`);
-            console.log("---------------");
+                        cornersTeamOne = document.querySelector('div:nth-child(2) > div:nth-child(3) > .oss-SoccerStatsCell_Label')
+                        cornersTeamTwo = document.querySelector('div:nth-child(3) > div:nth-child(3) > .oss-SoccerStatsCell_Label')
 
-            await page.locator('.g5-PopupManager_ClickMask').click();
+                        observerTeamHome.observe(cornersTeamOne, observerOptions)
+                        observerTeamOut.observe(cornersTeamTwo, observerOptions)
+                    }, {observerOptions})
 
-        }
-    };
+                } else {
+                    await page.evaluate( async ({observerOptions}) => {
+                        const observerTeamHome = new MutationObserver( async (changes) => {
+                            cornersTeamTwo = document.querySelector('div:nth-child(3) > div:nth-child(3) > .oss-SoccerStatsCell_Label').innerHTML
+                            for(let change of changes){
+                                if (change.type === 'characterData') {
+                                    console.log(`home team corner: [${change.target.textContent}]⛳️`)
+                                    console.log(`away team corner: ${cornersTeamTwo}⛳️`)
+                                }
+                            }
+                        })
+                        const observerTeamOut = new MutationObserver( async (changes) => {
+                            cornersTeamOne = document.querySelector('div:nth-child(2) > div:nth-child(3) > .oss-SoccerStatsCell_Label').innerHTML
+                            for(let change of changes){
+                                if (change.type === 'characterData') {
+                                    console.log(`home team corner: ${cornersTeamOne}⛳️`)
+                                    console.log(`away team corner: [${change.target.textContent}]⛳️`)
+                                }
+                            }
+                        })
 
-    console.log(await popup());
+                        cornersTeamOne = document.querySelector('div:nth-child(2) > div:nth-child(3) > .oss-SoccerStatsCell_Label')
+                        cornersTeamTwo = document.querySelector('div:nth-child(3) > div:nth-child(3) > .oss-SoccerStatsCell_Label')
 
-    await browser.close();
+                        observerTeamHome.observe(cornersTeamOne, observerOptions)
+                        observerTeamOut.observe(cornersTeamTwo, observerOptions)
+                    }, {observerOptions})
+
+                }
+
+            // await page.locator('.g5-PopupManager_ClickMask').click();
+
+        // }
+    }
+
+    await popup();
+
+    // await browser.close();
 
 })();
